@@ -35,7 +35,6 @@ const sendMessage = async (conn, transaction) => {
     await conn.createChannel(async function (err, ch) {
       const ex = "transactions";
       await ch.sendToQueue(ex, Buffer.from(transaction), { persistent: true });
-      console.log(" [x] Sent %s", transaction);
     });
   } catch (e) {
     console.log(e);
