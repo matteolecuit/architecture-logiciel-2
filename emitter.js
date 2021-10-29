@@ -5,6 +5,7 @@ const amqp = require("amqplib/callback_api");
 
 let delay = process.argv[2] || 100;
 let agent = fork("agent");
+
 async function start() {
   amqp.connect("amqp://guest:guest@127.0.0.1:5672", function (err, conn) {
     if (err) {

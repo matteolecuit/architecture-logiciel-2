@@ -1,4 +1,8 @@
 const amqp = require("amqplib/callback_api");
+const { fork } = require("child_process");
+
+const mailAgent = fork("agent_mail_notifier");
+const smsAgent = fork("agent_sms_notifier");
 
 process.on("message", (message) => {
   amqp.connect("amqp://guest:guest@127.0.0.1:5672", function (err, conn) {
@@ -9,7 +13,6 @@ process.on("message", (message) => {
           ch.consume(ex, (msg) => {
             const transaction = JSON.parse(msg.content.toString());
             const isValid = transaction.amount !== -1;
-            console.log({ amount: transaction.amount, isValid });
             if (isValid)
               acceptTransaction(conn, msg.content).catch(console.log);
             else rejectTransaction(conn, msg.content).catch(console.log);
@@ -28,6 +31,8 @@ const acceptTransaction = async (conn, transaction) => {
       const ex = "accepted";
       await ch.sendToQueue(ex, Buffer.from(transaction), { persistent: true });
       console.log(" [x] Transaction accepted %s", transaction);
+      mailAgent.send(JSON.stringify(transaction));
+      smsAgent.send(JSON.stringify(transaction));
     });
   } catch (e) {
     console.log(e);
